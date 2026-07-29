@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="1cb7d226-88da-4d6f-bcee-34fc5497bd09" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<flow name="calculatorFlow" doc:id="3ea4b1b4-1c2f-4cce-b7fa-3f1bfbb8b51e" >
+		<http:listener doc:name="Listener" doc:id="13c82fa7-c2a0-4c48-9c74-6a67522eab71" config-ref="HTTP_Listener_config" path="/calculate"/>
+		<set-variable value="#[payload.a]" doc:name="A" doc:id="e4b67e41-a229-4289-a9c8-a44eca7b3c13" variableName="a"/>
+		<set-variable value="#[payload.b]" doc:name="B" doc:id="e93f83c1-d807-4bd8-ba50-c04be13e4650" variableName="b"/>
+		<choice doc:name="Choice" doc:id="8ee6bce6-a663-40b3-be30-934530927087" >
+			<when expression="#[payload.operation=='add']">
+				<ee:transform doc:name="Transform Message" doc:id="ed90f37f-a4d6-4d3c-8e80-401e8c7599d0" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"result":vars.a+vars.b
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="8f31b216-0117-4c2d-a9e5-ecbef1481b14" message="#[payload]"/>
+			</when>
+			<when expression="#[payload.operation=='sub']">
+				<ee:transform doc:name="Transform Message" doc:id="e78212e6-1621-496d-a6cb-6097cd2e53fb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"result":vars.a-vars.b
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="c447f2b6-5210-469f-8827-d4ab00b29cd8" message="#[payload]"/>
+			</when>
+			<when expression="#[payload.operation=='mul']">
+				<ee:transform doc:name="Transform Message" doc:id="74ad8811-24ac-464f-9fa2-54db020643c7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"result":vars.a * vars.b
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="56b2f796-bc03-4347-b59d-87d01b49e2fb" message="#[payload]"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="293ca74a-6bb6-4dad-9dc2-421cd06cfa0c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"result":vars.a / vars.b
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="19d62b9d-293d-45dd-b40e-7ab85df15108" message="#[payload]"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
