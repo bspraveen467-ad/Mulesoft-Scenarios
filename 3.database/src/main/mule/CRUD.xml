@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="CRUDFlow" doc:id="6d6747f6-59bc-46e5-bf5b-5bc8e256f6c0" >
+		<http:listener doc:name="Listener" doc:id="285d125c-84a4-4e0d-8b3c-f141479cfa5d" config-ref="HTTP_Listener_config" path="/dblogic"/>
+		<logger level="INFO" doc:name="Logger" doc:id="820a8ec4-bcb4-471e-92ab-bea75075008e" message="DB flow started"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f848461e-e50a-4f90-ba7f-605b71e32f14" message="#[payload]"/>
+		<choice doc:name="Choice" doc:id="2580e133-c2b7-4b6e-83ea-ac68ebf11736" >
+			<when expression="#[payload.method=='create']">
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  "customerId": payload.customerId,&#10;  "customerName": payload.customerName,&#10;  "email": payload.email,&#10;  "city": payload.city,&#10;  "status": payload.status&#10;}]' doc:name="Set Variable" doc:id="d18340b1-d732-4ca7-9893-ab9169cc6a7e" variableName="Db-in"/>
+				<logger level="INFO" doc:name="Logger" doc:id="f59805db-97de-4542-abdc-ad8cf462dbe2" message="Create flow executed"/>
+				<db:insert doc:name="Insert" doc:id="17096f90-4581-4bda-895e-72e061b99c8f" config-ref="Database_Config">
+					<db:sql ><![CDATA[INSERT INTO CUSTOMERS
+(
+    CUSTOMER_ID,
+    CUSTOMER_NAME,
+    EMAIL,
+    CITY,
+    STATUS
+)
+VALUES
+(
+    :CUSTOMER_ID,
+    :CUSTOMER_NAME,
+    :EMAIL,
+    :CITY,
+    :STATUS
+)]]></db:sql>
+					<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+    CUSTOMER_ID: payload.customerId,
+    CUSTOMER_NAME: payload.customerName,
+    EMAIL: payload.email,
+    CITY: payload.city,
+    STATUS: payload.status
+    }]]]></db:input-parameters>
+				</db:insert>
+			</when>
+			<when expression="payload.method=='update'">
+				<set-variable doc:name="Set Variable" doc:id="f555faef-f028-482d-856c-66a1e4cf91ea" variableName="Db-in" value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;  "customerId": payload.customerId,&#10;  "customerName": payload.customerName,&#10;  "email": payload.email,&#10;  "city": payload.city,&#10;  "status": payload.status&#10;}]'/>
+				<logger level="INFO" doc:name="Logger" doc:id="43b47bd7-f7b2-41ae-8ceb-00976f7365aa" message="Update flow executed"/>
+				<db:update doc:name="Update" doc:id="b3bedabf-944d-4dcf-9f8d-78f532a75563" config-ref="Database_Config">
+					<db:sql ><![CDATA[UPDATE CUSTOMERS
+SET
+    CUSTOMER_NAME = :CUSTOMER_NAME,
+    EMAIL = :EMAIL,
+    CITY = :CITY,
+    STATUS = :STATUS
+WHERE CUSTOMER_ID = :CUSTOMER_ID]]></db:sql>
+					<db:input-parameters ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+    CUSTOMER_ID: payload.customerId,
+    CUSTOMER_NAME: payload.customerName,
+    EMAIL: payload.email,
+    CITY: payload.city,
+    STATUS: payload.status
+}]]]></db:input-parameters>
+				</db:update>
+			</when>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="9c50bc50-d433-46f9-9c8f-4d6cec727ef2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "request":vars."Db-in",
+  
+  "requestStatus":"Success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

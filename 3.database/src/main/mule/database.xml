@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="a30d62ff-53fd-43b7-8c8f-b5eca9c1c50a" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="26c188c1-0a41-465c-9646-00ff41ad6973" >
+		<db:oracle-connection host="localhost" user="praveen" password="system" serviceName="xe" />
+	</db:config>
+	<flow name="databaseFlow" doc:id="ff254db5-ef13-43c0-a774-e3d767ff2ea9" >
+		<http:listener doc:name="Listener" doc:id="90844f87-d206-474d-bcf0-a814e4717159" config-ref="HTTP_Listener_config" path="/database"/>
+		<db:execute-ddl doc:name="Execute DDL" doc:id="14cc7cdd-c790-4a85-b76b-aacdcfdb1f94" config-ref="Database_Config">
+			<db:sql ><![CDATA[CREATE TABLE CUSTOMERS (
+CUSTOMER_ID NUMBER PRIMARY KEY,
+CUSTOMER_NAME VARCHAR2(100),
+EMAIL VARCHAR2(100),
+CITY VARCHAR2(50),
+STATUS VARCHAR2(20)
+)]]></db:sql>
+		</db:execute-ddl>
+		<db:insert doc:name="Insert" doc:id="bc7a0cda-3388-4c27-802d-1ef7020d5562" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO CUSTOMERS VALUES (101, 'Ramesh', 'ramesh@gmail.com',
+'Hyderabad', 'ACTIVE')]]></db:sql>
+		</db:insert>
+	</flow>
+</mule>
