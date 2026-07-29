@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="be61d195-a2b0-4a83-9fda-cd9c5073392b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="5fcbffd3-639d-4813-a3f2-87bd5f599f1e">
+		<http:request-connection protocol="HTTPS" host="dummyjson.com"/>
+	</http:request-config>
+	<flow name="firstapiFlow1" doc:id="1c9de1b0-e92e-42ed-8b38-22f4a0df2e49" >
+		<http:listener doc:name="Listener" doc:id="f73a1a72-a0e8-4b0a-84b1-356651d13ce2" config-ref="HTTP_Listener_config" path="hello-mule" allowedMethods="GET"/>
+		<http:request method="GET" doc:name="Request" doc:id="66519904-5f8f-46fe-aac3-cade66cb3951" config-ref="HTTP_Request_configuration" path="/products/3"/>
+		<ee:transform doc:name="Transform Message" doc:id="9138db9e-691c-413a-8606-58058f4d5dfc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"product_title":payload.title,
+	"category":payload.category,
+	"tags":payload.tags
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="740ad2b5-f107-4f42-a477-fee54f1457bc" message="#[payload]"/>
+	</flow>
+</mule>
