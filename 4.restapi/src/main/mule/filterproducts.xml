@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="Filterproducts" doc:id="b18d8993-f87f-401d-bd38-e558ed37c57e" >
+		<http:listener doc:name="Listener" doc:id="e2bd0835-2e8b-4479-abcb-383184b7edcc" config-ref="HTTP_Listener_config" path="/filterproducts" allowedMethods="GET" />
+		<http:request method="GET" doc:name="Request" doc:id="a9dc8adf-2b5f-4045-bb5c-b79b23ed2b93" config-ref="HTTP_Request_configuration" path="/products" sendBodyMode="ALWAYS" />
+		<logger level="INFO" doc:name="Logger" doc:id="dc1cdf6e-d6f7-486c-85ab-3512b66e377f" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="b1ca58b5-4c35-45e4-b3df-430afc2d5400" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"products":payload.products filter ($.price > 1000)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger1" doc:id="806584d9-ec5f-48dd-ae72-bc44a6bd960c" message="#[payload]" />
+	</flow>
+</mule>

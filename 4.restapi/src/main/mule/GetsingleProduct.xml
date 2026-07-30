@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="getaproduct" doc:id="ff90afa3-f792-4611-873c-1eba76929183" >
+		<http:listener doc:name="Listener" doc:id="39d96d49-6c01-48e0-88f1-48c4d935581e" config-ref="HTTP_Listener_config" path="/getsingleproduct" allowedMethods="GET" />
+		<http:request method="GET" doc:name="Request" doc:id="486aacd3-e4cd-4aa6-bd5a-d256b9a7f1e5" config-ref="HTTP_Request_configuration" path="/products/3" sendBodyMode="ALWAYS" />
+		<logger level="INFO" doc:name="Logger" doc:id="4ecf3ff6-a60d-4c4f-895d-ea1a544e16b0" message="#[payload]" />
+		<ee:transform doc:name="Transform Message" doc:id="ad931fee-12ca-44b7-af47-3f92f917be94" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"title":payload.title,
+	"description":payload.description,
+	"availability":payload.availabilityStatus,
+	"min-orderquantity":payload.minimumOrderQuantity
+	}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger1" doc:id="06d2477a-0c1c-4547-b3f9-ce80da99347b" message="#[payload]" />
+	</flow>
+</mule>
