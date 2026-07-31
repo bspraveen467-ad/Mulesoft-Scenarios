@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="82ec5aba-a3f1-422f-9603-dddcb89f5167" >
+		<http:listener-connection host="0.0.0.0" port="8083" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="daf2a8a9-f1f2-4a7f-85fc-079297f7e79d">
+		<http:request-connection protocol="HTTPS" host="geocoding-api.open-meteo.com" />
+	</http:request-config>
+	<flow name="geocodingapi-restFlow" doc:id="02487d8a-1224-4acf-928b-3d12a6354c1a" doc:description="Fetch the latitude, longitude, population etc by sending the city name&#10;">
+		<http:listener doc:name="Listener" doc:id="8375f10b-f811-45df-a74b-179aed8e7e6e" config-ref="HTTP_Listener_config" path="/geo-loc" allowedMethods="POST"/>
+		<http:request method="GET" doc:name="Request" doc:id="2c2028e8-3a31-49c3-bb10-1bbcd2030615" config-ref="HTTP_Request_configuration" sendBodyMode="ALWAYS" path="/v1/search">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	name : payload.city
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="b7b547df-5ae9-45ad-ba95-b0b548ee8fc2" message="#[payload.results[0]]"/>
+		<ee:transform doc:name="Transform Message" doc:id="5214993f-7d6f-4145-9f5e-234f8e3435ee" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    city: payload.results[0].name,
+    countryCode: payload.results[0].country_code,
+    population: payload.results[0].population,
+    state: payload.results[0].admin1,
+    district: payload.results[0].admin2,
+    latitude: payload.results[0].latitude,
+    longitude: payload.results[0].longitude
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="73254100-abf1-43c2-943a-7118fd768b4d" message="#[payload]"/>
+	</flow>
+</mule>
